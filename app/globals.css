@@ -1,0 +1,150 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   "Index" design system
+   ========================================================================== */
+@theme {
+  --color-bg: #0a0a0a;
+  --color-surface: #121212;
+  --color-surface-2: #1a1a1a;
+  --color-line: #262626;
+  --color-text: #edebe6;
+  --color-muted: #8e8b85;
+  --color-faint: #5c5a56;
+  --color-accent: #ff4d3d;
+  --color-accent-press: #e23b2c;
+
+  --font-display: var(--font-clash), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-serif: var(--font-instrument), ui-serif, Georgia, serif;
+
+  --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --breakpoint-xs: 26rem;
+}
+
+@keyframes hero-rise { from { transform: translateY(42%); } to { transform: translateY(0); } }
+@keyframes drift { from { transform: translateY(6%); } to { transform: translateY(-6%); } }
+@keyframes hero-draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes hero-fade { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+@layer base {
+  :root {
+    color-scheme: dark;
+    --gutter: 1.25rem;
+  }
+  @media (min-width: 48rem) {
+    :root { --gutter: 2.5rem; }
+  }
+  @media (min-width: 80rem) {
+    :root { --gutter: 4rem; }
+  }
+
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    font-size: 1.0625rem;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    background: rgb(255 77 61 / 0.28);
+    color: var(--color-text);
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+}
+
+@layer components {
+  .container-x {
+    width: 100%;
+    max-width: 90rem;
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+  }
+  .label {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    line-height: 1.2;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+  /* Underline that grows from the inline start on hover/focus */
+  .link-grow {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 0% 1px;
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    transition: background-size 250ms var(--ease-out-expo), color 250ms var(--ease-out-expo);
+  }
+  .link-grow:hover,
+  .link-grow:focus-visible {
+    background-size: 100% 1px;
+  }
+  /* Hero entrance — CSS only, so the name paints without waiting for hydration */
+  .hero-letter { animation: hero-rise 900ms var(--ease-out-expo) both; }
+  .hero-rule { animation: hero-draw 1000ms var(--ease-out-expo) 550ms both; }
+  .hero-fade { animation: hero-fade 700ms var(--ease-out-expo) 800ms both; }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-letter, .hero-rule, .hero-fade { animation: none; }
+  }
+
+  /* Scroll reveals (RevealObserver sets data-shown). Hidden only once JS has had a chance to run. */
+  [data-reveal=""] {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 600ms var(--ease-out-expo) var(--reveal-delay, 0s), transform 600ms var(--ease-out-expo) var(--reveal-delay, 0s);
+  }
+  [data-reveal="image"] .reveal-clip {
+    clip-path: inset(100% 0 0 0);
+    transition: clip-path 800ms var(--ease-out-expo) var(--reveal-delay, 0s);
+  }
+  [data-reveal=""][data-shown] { opacity: 1; transform: none; }
+  [data-reveal="image"][data-shown] .reveal-clip { clip-path: inset(0 0 0 0); }
+
+  /* Layered phone screenshot drifts slightly against the main one (scroll-driven, no JS). */
+  /* Desktop only: on tablet/mobile the screenshots stack, so drifting would make them collide. */
+  @supports (animation-timeline: view()) {
+    @media (min-width: 64rem) {
+      .parallax { animation: drift linear both; animation-timeline: view(); }
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-reveal=""] { opacity: 1; transform: none; transition: none; }
+    [data-reveal="image"] .reveal-clip { clip-path: none; transition: none; }
+    .parallax { animation: none; }
+  }
+
+  /* Subtle film grain — static, no animation, decorative only */
+  .grain::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    pointer-events: none;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+}
